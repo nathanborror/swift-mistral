@@ -26,7 +26,7 @@ public final class MistralClient {
         return try decoder.decode(ChatResponse.self, from: data)
     }
     
-    public func chatStream(_ payload: ChatRequest) -> AsyncThrowingStream<ChatResponse, Error> {
+    public func chatStream(_ payload: ChatRequest) -> AsyncThrowingStream<ChatStreamResponse, Error> {
         var body = payload
         body.stream = true
         return makeAsyncRequest(path: "chat/completions", method: "POST", body: body)

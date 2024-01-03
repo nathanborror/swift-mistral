@@ -36,16 +36,16 @@ public struct ChatRequest: Codable {
 
 public struct ChatResponse: Codable {
     public let id: String
-    public let object: String
+    public let object: String?
     public let created: Date
     public let model: String
     public let choices: [Choice]
-    public let usage: Usage
+    public let usage: Usage?
     
     public struct Choice: Codable {
         public let index: Int
         public let message: Message
-        public let finishReason: FinishReason
+        public let finishReason: FinishReason?
         
         public enum FinishReason: String, Codable {
             case stop, length, model_length
@@ -57,23 +57,36 @@ public struct ChatResponse: Codable {
             case finishReason = "finish_reason"
         }
     }
+}
+
+public struct ChatStreamResponse: Codable {
+    public let id: String
+    public let object: String?
+    public let created: Date?
+    public let model: String
+    public let choices: [Choice]
+    public let usage: Usage?
     
-    public struct Usage: Codable {
-        public let promptTokens: Int
-        public let completionTokens: Int
-        public let totalTokens: Int
+    public struct Choice: Codable {
+        public let index: Int
+        public let delta: Message
+        public let finishReason: FinishReason?
+        
+        public enum FinishReason: String, Codable {
+            case stop, length, model_length
+        }
         
         enum CodingKeys: String, CodingKey {
-            case promptTokens = "prompt_tokens"
-            case completionTokens = "completion_tokens"
-            case totalTokens = "total_tokens"
+            case index
+            case delta
+            case finishReason = "finish_reason"
         }
     }
 }
 
 public struct Message: Codable {
-    public var role: Role
-    public var content: String
+    public var role: Role?
+    public var content: String?
     
     public enum Role: String, Codable {
         case system, assistant, user
@@ -82,5 +95,17 @@ public struct Message: Codable {
     public init(role: Role, content: String) {
         self.role = role
         self.content = content
+    }
+}
+
+public struct Usage: Codable {
+    public let promptTokens: Int
+    public let completionTokens: Int
+    public let totalTokens: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case promptTokens = "prompt_tokens"
+        case completionTokens = "completion_tokens"
+        case totalTokens = "total_tokens"
     }
 }
