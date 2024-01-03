@@ -41,7 +41,7 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
             return
         }
         let jsonObjects = stringContent
-            .components(separatedBy: "\n")
+            .components(separatedBy: "data:")
             .filter { $0.isEmpty == false }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         
@@ -66,13 +66,12 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
     }
     
     private var decoder: JSONDecoder {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
-
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .formatted(formatter)
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateInt = try container.decode(Int.self)
+            return Date(timeIntervalSince1970: TimeInterval(dateInt))
+        }
         return decoder
     }
 }
