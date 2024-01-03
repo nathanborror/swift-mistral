@@ -29,7 +29,7 @@ public final class MistralClient {
     public func chatStream(_ payload: ChatRequest) -> AsyncThrowingStream<ChatResponse, Error> {
         var body = payload
         body.stream = true
-        return makeAsyncRequest(path: "chat", method: "POST", body: body)
+        return makeAsyncRequest(path: "chat/completions", method: "POST", body: body)
     }
     
     // Models
