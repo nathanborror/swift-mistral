@@ -47,10 +47,6 @@ public struct ChatResponse: Codable {
         public let message: Message
         public let finishReason: FinishReason?
         
-        public enum FinishReason: String, Codable {
-            case stop, length, model_length
-        }
-        
         enum CodingKeys: String, CodingKey {
             case index
             case message
@@ -72,10 +68,6 @@ public struct ChatStreamResponse: Codable {
         public let delta: Message
         public let finishReason: FinishReason?
         
-        public enum FinishReason: String, Codable {
-            case stop, length, model_length
-        }
-        
         enum CodingKeys: String, CodingKey {
             case index
             case delta
@@ -96,6 +88,10 @@ public struct Message: Codable {
         self.role = role
         self.content = content
     }
+}
+
+public enum FinishReason: String, Codable {
+    case stop, length, model_length
 }
 
 public struct Usage: Codable {
