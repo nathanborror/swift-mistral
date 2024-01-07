@@ -1,7 +1,7 @@
 import XCTest
-@testable import MistralKit
+@testable import Mistral
 
-final class MistralKitTests: XCTestCase {
+final class MistralTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest

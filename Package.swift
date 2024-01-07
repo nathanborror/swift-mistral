@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "MistralKit",
+    name: "swift-mistral",
     platforms: [
         .iOS(.v16),
         .macOS(.v13),
@@ -12,10 +12,10 @@ let package = Package(
         .tvOS(.v16),
     ],
     products: [
-        .library(name: "MistralKit", targets: ["MistralKit"]),
+        .library(name: "Mistral", targets: ["Mistral"]),
     ],
     targets: [
-        .target(name: "MistralKit"),
-        .testTarget(name: "MistralKitTests", dependencies: ["MistralKit"]),
+        .target(name: "Mistral"),
+        .testTarget(name: "MistralTests", dependencies: ["Mistral"]),
     ]
 )
