@@ -2,12 +2,24 @@ import Foundation
 
 public final class MistralClient {
     
-    let host: URL
-    let token: String
+    public struct Configuration {
+        public let host: URL
+        public let token: String
+        
+        init(host: URL = URL(string: "https://api.mistral.ai/v1")!, token: String) {
+            self.host = host
+            self.token = token
+        }
+    }
     
-    public init(token: String) {
-        self.host = URL(string: "https://api.mistral.ai/v1/")!
-        self.token = token
+    public let configuration: Configuration
+    
+    public init(configuration: Configuration) {
+        self.configuration = configuration
+    }
+    
+    public convenience init(token: String) {
+        self.init(configuration: .init(token: token))
     }
     
     // Chats
@@ -59,11 +71,11 @@ public final class MistralClient {
     // Private
     
     private func makeRequest(path: String, method: String) -> URLRequest {
-        var req = URLRequest(url: host.appending(path: path))
+        var req = URLRequest(url: configuration.host.appending(path: path))
         req.httpMethod = method
         req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
-        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        req.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
         return req
     }
     
