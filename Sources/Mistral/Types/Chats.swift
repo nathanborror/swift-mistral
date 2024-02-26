@@ -9,6 +9,11 @@ public struct ChatRequest: Codable {
     public var stream: Bool?
     public var safeMode: Bool?
     public var randomSeed: Int?
+    public var responseFormat: ResponseFormat?
+    
+    public struct ResponseFormat: Codable {
+        public var type: String
+    }
     
     enum CodingKeys: String, CodingKey {
         case model
@@ -19,10 +24,12 @@ public struct ChatRequest: Codable {
         case stream
         case safeMode = "safe_mode"
         case randomSeed = "random_seed"
+        case responseFormat = "response_format"
     }
     
     public init(model: String, messages: [Message], temperature: Float? = nil, topP: Float? = nil, 
-                maxTokens: Int? = nil, stream: Bool? = nil, safeMode: Bool? = nil, randomSeed: Int? = nil) {
+                maxTokens: Int? = nil, stream: Bool? = nil, safeMode: Bool? = nil, randomSeed: Int? = nil,
+                responseFormat: ResponseFormat?) {
         self.model = model
         self.messages = messages
         self.temperature = temperature
@@ -31,6 +38,7 @@ public struct ChatRequest: Codable {
         self.stream = stream
         self.safeMode = safeMode
         self.randomSeed = randomSeed
+        self.responseFormat = responseFormat
     }
 }
 
