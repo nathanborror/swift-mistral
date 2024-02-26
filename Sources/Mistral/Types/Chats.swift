@@ -29,7 +29,7 @@ public struct ChatRequest: Codable {
     
     public init(model: String, messages: [Message], temperature: Float? = nil, topP: Float? = nil, 
                 maxTokens: Int? = nil, stream: Bool? = nil, safeMode: Bool? = nil, randomSeed: Int? = nil,
-                responseFormat: ResponseFormat?) {
+                responseFormat: ResponseFormat? = nil) {
         self.model = model
         self.messages = messages
         self.temperature = temperature
