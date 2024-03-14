@@ -13,7 +13,7 @@ public struct ChatRequest: Codable {
     public var randomSeed: Int?
     public var responseFormat: ResponseFormat?
     
-    public enum ToolChoice: Codable {
+    public enum ToolChoice: String, Codable {
         case none
         case auto
         case any
