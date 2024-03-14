@@ -3,6 +3,8 @@ import Foundation
 public struct ChatRequest: Codable {
     public var model: String
     public var messages: [Message]
+    public var tools: [Tool]?
+    public let toolChoice: ToolChoice?
     public var temperature: Float?
     public var topP: Float?
     public var maxTokens: Int?
@@ -11,6 +13,12 @@ public struct ChatRequest: Codable {
     public var randomSeed: Int?
     public var responseFormat: ResponseFormat?
     
+    public enum ToolChoice: Codable {
+        case none
+        case auto
+        case any
+    }
+    
     public struct ResponseFormat: Codable {
         public var type: String
     }
@@ -18,6 +26,8 @@ public struct ChatRequest: Codable {
     enum CodingKeys: String, CodingKey {
         case model
         case messages
+        case tools
+        case toolChoice = "tool_choice"
         case temperature
         case topP = "top_p"
         case maxTokens = "max_tokens"
@@ -27,11 +37,13 @@ public struct ChatRequest: Codable {
         case responseFormat = "response_format"
     }
     
-    public init(model: String, messages: [Message], temperature: Float? = nil, topP: Float? = nil, 
-                maxTokens: Int? = nil, stream: Bool? = nil, safeMode: Bool? = nil, randomSeed: Int? = nil,
-                responseFormat: ResponseFormat? = nil) {
+    public init(model: String, messages: [Message], tools: [Tool]? = nil, toolChoice: ToolChoice? = nil,
+                temperature: Float? = nil, topP: Float? = nil, maxTokens: Int? = nil, stream: Bool? = nil,
+                safeMode: Bool? = nil, randomSeed: Int? = nil, responseFormat: ResponseFormat? = nil) {
         self.model = model
         self.messages = messages
+        self.tools = tools
+        self.toolChoice = toolChoice
         self.temperature = temperature
         self.topP = topP
         self.maxTokens = maxTokens
@@ -87,19 +99,45 @@ public struct ChatStreamResponse: Codable {
 public struct Message: Codable {
     public var role: Role?
     public var content: String?
+    public var toolCalls: [ToolCall]?
     
     public enum Role: String, Codable {
         case system, assistant, user
     }
     
-    public init(role: Role, content: String) {
+    public struct ToolCall: Codable {
+        public var function: Function
+        
+        public struct Function: Codable {
+            public var name: String?
+            public var arguments: String?
+            
+            public init(name: String? = nil, arguments: String? = nil) {
+                self.name = name
+                self.arguments = arguments
+            }
+        }
+        
+        public init(function: Function) {
+            self.function = function
+        }
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case role
+        case content
+        case toolCalls = "tool_calls"
+    }
+    
+    public init(role: Role? = nil, content: String? = nil, toolCalls: [ToolCall]? = nil) {
         self.role = role
         self.content = content
+        self.toolCalls = toolCalls
     }
 }
 
 public enum FinishReason: String, Codable {
-    case stop, length, model_length
+    case stop, length, model_length, error, tool_calls
 }
 
 public struct Usage: Codable {

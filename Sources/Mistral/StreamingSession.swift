@@ -14,6 +14,7 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
     var onProcessingError: ((StreamingSession, Error) -> Void)?
     var onComplete: ((StreamingSession, Error?) -> Void)?
     
+    private var streamingBuffer = ""
     private let streamingCompletionMarker = "[DONE]"
     private let urlRequest: URLRequest
     private lazy var urlSession: URLSession = {
@@ -40,16 +41,18 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
             onProcessingError?(self, StreamingError.unknownContent)
             return
         }
-        let jsonObjects = stringContent
+        let jsonObjects = "\(streamingBuffer)\(stringContent)"
             .components(separatedBy: "data:")
             .filter { $0.isEmpty == false }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         
+        streamingBuffer = ""
+        
         guard jsonObjects.isEmpty == false, jsonObjects.first != streamingCompletionMarker else {
             return
         }
-        jsonObjects.forEach { jsonContent  in
-            guard jsonContent != streamingCompletionMarker else {
+        jsonObjects.enumerated().forEach { (index, jsonContent)  in
+            guard jsonContent != streamingCompletionMarker && !jsonContent.isEmpty else {
                 return
             }
             guard let jsonData = jsonContent.data(using: .utf8) else {
@@ -60,7 +63,11 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
                 let object = try decoder.decode(ResultType.self, from: jsonData)
                 onReceiveContent?(self, object)
             } catch {
-                onProcessingError?(self, error)
+                if index == (jsonObjects.count - 1) {
+                    streamingBuffer = "data: \(jsonContent)"
+                } else {
+                    onProcessingError?(self, error)
+                }
             }
         }
     }
