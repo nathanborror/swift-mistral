@@ -14,8 +14,13 @@ let package = Package(
     products: [
         .library(name: "Mistral", targets: ["Mistral"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/nathanborror/swift-shared-kit", branch: "main"),
+    ],
     targets: [
-        .target(name: "Mistral"),
+        .target(name: "Mistral", dependencies: [
+            .product(name: "SharedKit", package: "swift-shared-kit"),
+        ]),
         .testTarget(name: "MistralTests", dependencies: ["Mistral"]),
     ]
 )

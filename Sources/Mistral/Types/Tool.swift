@@ -1,4 +1,5 @@
 import Foundation
+import SharedKit
 
 public struct Tool: Codable, Equatable {
     public let type: String
