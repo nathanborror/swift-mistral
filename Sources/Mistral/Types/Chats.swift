@@ -102,7 +102,7 @@ public struct Message: Codable {
     public var toolCalls: [ToolCall]?
     
     public enum Role: String, Codable {
-        case system, assistant, user
+        case system, assistant, user, tool
     }
     
     public struct ToolCall: Codable {
