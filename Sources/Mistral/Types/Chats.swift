@@ -106,6 +106,7 @@ public struct Message: Codable {
     }
     
     public struct ToolCall: Codable {
+        public var id: String
         public var function: Function
         
         public struct Function: Codable {
@@ -118,7 +119,8 @@ public struct Message: Codable {
             }
         }
         
-        public init(function: Function) {
+        public init(id: String, function: Function) {
+            self.id = id
             self.function = function
         }
     }
