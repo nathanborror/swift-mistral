@@ -100,6 +100,7 @@ public struct Message: Codable {
     public var role: Role?
     public var content: String?
     public var toolCalls: [ToolCall]?
+    public var toolCallID: String?
     
     public enum Role: String, Codable {
         case system, assistant, user, tool
@@ -129,12 +130,14 @@ public struct Message: Codable {
         case role
         case content
         case toolCalls = "tool_calls"
+        case toolCallID = "tool_call_id"
     }
     
-    public init(role: Role? = nil, content: String? = nil, toolCalls: [ToolCall]? = nil) {
+    public init(role: Role? = nil, content: String? = nil, toolCalls: [ToolCall]? = nil, toolCallID: String? = nil) {
         self.role = role
         self.content = content
         self.toolCalls = toolCalls
+        self.toolCallID = toolCallID
     }
 }
 
