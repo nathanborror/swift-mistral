@@ -6,8 +6,8 @@ public final class MistralClient {
         public let host: URL
         public let token: String
         
-        public init(host: URL = URL(string: "https://api.mistral.ai/v1")!, token: String) {
-            self.host = host
+        public init(host: URL? = nil, token: String) {
+            self.host = host ?? Defaults.apiHost
             self.token = token
         }
     }
