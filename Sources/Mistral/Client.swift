@@ -6,15 +6,13 @@ public final class Client {
 
     public let host: URL
     public let apiKey: String
-    public let userAgent: String?
 
     internal(set) public var session: URLSession
 
-    public init(session: URLSession = URLSession(configuration: .default), host: URL? = nil, apiKey: String, userAgent: String? = nil) {
+    public init(session: URLSession = URLSession(configuration: .default), host: URL? = nil, apiKey: String) {
+        self.session = session
         self.host = host ?? Self.defaultHost
         self.apiKey = apiKey
-        self.userAgent = userAgent
-        self.session = session
     }
 
     public enum Error: Swift.Error, CustomStringConvertible {
