@@ -69,9 +69,8 @@ public struct ChatRequest: Codable, Sendable {
                 }
             }
 
-            public init(id: String, type: String, function: Function) {
+            public init(id: String, function: Function) {
                 self.id = id
-                self.type = type
                 self.function = function
             }
         }
@@ -112,8 +111,7 @@ public struct ChatRequest: Codable, Sendable {
             }
         }
 
-        public init(type: String, function: Function? = nil) {
-            self.type = type
+        public init(function: Function? = nil) {
             self.function = function
         }
     }
