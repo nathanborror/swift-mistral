@@ -1,88 +1,110 @@
 import Foundation
 
-public final class MistralClient {
-    
-    public struct Configuration {
-        public let host: URL
-        public let token: String
-        
-        public init(host: URL? = nil, token: String) {
-            self.host = host ?? Defaults.apiHost
-            self.token = token
+public final class Client {
+
+    public static let defaultHost = URL(string: "https://api.mistral.ai/v1")!
+
+    public let host: URL
+    public let apiKey: String
+    public let userAgent: String?
+
+    internal(set) public var session: URLSession
+
+    public init(session: URLSession = URLSession(configuration: .default), host: URL? = nil, apiKey: String, userAgent: String? = nil) {
+        self.host = host ?? Self.defaultHost
+        self.apiKey = apiKey
+        self.userAgent = userAgent
+        self.session = session
+    }
+
+    public enum Error: Swift.Error, CustomStringConvertible {
+        case requestError(String)
+        case responseError(response: HTTPURLResponse, detail: String)
+        case decodingError(response: HTTPURLResponse, detail: String)
+        case unexpectedError(String)
+
+        public var description: String {
+            switch self {
+            case .requestError(let detail):
+                return "Request error: \(detail)"
+            case .responseError(let response, let detail):
+                return "Response error (Status \(response.statusCode)): \(detail)"
+            case .decodingError(let response, let detail):
+                return "Decoding error (Status \(response.statusCode)): \(detail)"
+            case .unexpectedError(let detail):
+                return "Unexpected error: \(detail)"
+            }
         }
     }
-    
-    public let configuration: Configuration
-    
-    public init(configuration: Configuration) {
-        self.configuration = configuration
+
+    private enum Method: String {
+        case post = "POST"
+        case get = "GET"
     }
-    
-    public convenience init(token: String) {
-        self.init(configuration: .init(token: token))
-    }
-    
-    // Chats
-    
-    public func chat(_ payload: ChatRequest) async throws -> ChatResponse {
-        var body = payload
-        body.stream = nil
-        
-        var req = makeRequest(path: "chat/completions", method: "POST")
-        req.httpBody = try JSONEncoder().encode(body)
-        
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        if let httpResponse = resp as? HTTPURLResponse, httpResponse.statusCode != 200 {
-            throw URLError(.badServerResponse)
+
+    private struct ErrorResponse: Decodable {
+        let detail: Detail
+
+        struct Detail: Codable, Sendable {
+            let loc: [String]
+            let msg: String
+            let type: String
         }
-        return try decoder.decode(ChatResponse.self, from: data)
     }
-    
-    public func chatStream(_ payload: ChatRequest) -> AsyncThrowingStream<ChatStreamResponse, Error> {
-        var body = payload
-        body.stream = true
-        return makeAsyncRequest(path: "chat/completions", method: "POST", body: body)
+}
+
+// MARK: - Models
+
+extension Client {
+
+    public func models() async throws -> ModelsResponse {
+        try await fetch(.get, "models")
     }
-    
-    // Models
-    
-    public func models() async throws -> ModelListResponse {
-        let req = makeRequest(path: "models", method: "GET")
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        if let httpResponse = resp as? HTTPURLResponse, httpResponse.statusCode != 200 {
-            throw URLError(.badServerResponse)
+}
+
+// MARK: - Chats
+
+extension Client {
+
+    public func chatCompletions(_ request: ChatRequest) async throws -> ChatResponse {
+        guard request.stream == nil || request.stream == false else {
+            throw Error.requestError("ChatRequest.stream cannot be set to 'true'")
         }
-        return try decoder.decode(ModelListResponse.self, from: data)
+        return try await fetch(.post, "chat/completions", body: request)
     }
-    
-    // Embeddings
-    
-    public func embeddings(_ payload: EmbeddingRequest) async throws -> EmbeddingResponse {
-        var req = makeRequest(path: "embeddings", method: "POST")
-        req.httpBody = try JSONEncoder().encode(payload)
-        
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        if let httpResponse = resp as? HTTPURLResponse, httpResponse.statusCode != 200 {
-            throw URLError(.badServerResponse)
+
+    public func chatCompletionsStream(_ request: ChatRequest) throws -> AsyncThrowingStream<ChatStreamResponse, Swift.Error> {
+        guard request.stream == true else {
+            throw Error.requestError("ChatRequest.stream must be set to 'true'")
         }
-        return try decoder.decode(EmbeddingResponse.self, from: data)
+        return try fetchAsync(.post, "chat/completions", body: request)
     }
-    
-    // Private
-    
-    private func makeRequest(path: String, method: String) -> URLRequest {
-        var req = URLRequest(url: configuration.host.appending(path: path))
-        req.httpMethod = method
-        req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
-        req.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
-        return req
+}
+
+// MARK: - Embeddings
+
+extension Client {
+
+    public func embeddings(_ request: EmbeddingsRequest) async throws -> EmbeddingsResponse {
+        try await fetch(.post, "embeddings", body: request)
     }
-    
-    private func makeAsyncRequest<Body: Codable, Response: Codable>(path: String, method: String, body: Body) -> AsyncThrowingStream<Response, Error> {
-        var request = makeRequest(path: path, method: method)
-        request.httpBody = try? JSONEncoder().encode(body)
-        
+}
+
+// MARK: - Private
+
+extension Client {
+
+    private func fetch<Response: Decodable>(_ method: Method, _ path: String, body: Encodable? = nil) async throws -> Response {
+        try checkAuthentication()
+        let request = try makeRequest(path: path, method: method, body: body)
+        let (data, resp) = try await session.data(for: request)
+        try checkResponse(resp, data)
+        return try decoder.decode(Response.self, from: data)
+    }
+
+    private func fetchAsync<Response: Codable>(_ method: Method, _ path: String, body: Encodable) throws -> AsyncThrowingStream<Response, Swift.Error> {
+        try checkAuthentication()
+        let request = try makeRequest(path: path, method: method, body: body)
         return AsyncThrowingStream { continuation in
             let session = StreamingSession<Response>(urlRequest: request)
             session.onReceiveContent = {_, object in
@@ -97,7 +119,35 @@ public final class MistralClient {
             session.perform()
         }
     }
-    
+
+    private func checkAuthentication() throws {
+        if apiKey.isEmpty {
+            throw Error.requestError("Missing API key")
+        }
+    }
+
+    private func checkResponse(_ resp: URLResponse?, _ data: Data) throws {
+        if let response = resp as? HTTPURLResponse, response.statusCode != 200 {
+            if let err = try? decoder.decode(ErrorResponse.self, from: data) {
+                throw Error.responseError(response: response, detail: err.detail.msg)
+            } else {
+                throw Error.responseError(response: response, detail: "Unknown response error")
+            }
+        }
+    }
+
+    private func makeRequest(path: String, method: Method, body: Encodable? = nil) throws -> URLRequest {
+        var req = URLRequest(url: host.appending(path: path))
+        req.httpMethod = method.rawValue
+        req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        if let body {
+            req.httpBody = try JSONEncoder().encode(body)
+        }
+        return req
+    }
+
     private var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
