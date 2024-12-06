@@ -177,11 +177,11 @@ public struct ChatResponse: Codable, Sendable {
 
         public struct Message: Codable, Sendable {
             public let content: String?
-            public let tool_calls: [ToolCalls]?
+            public let tool_calls: [ToolCall]?
             public let prefix: String?
             public let role: String?
 
-            public struct ToolCalls: Codable, Sendable {
+            public struct ToolCall: Codable, Sendable {
                 public let id: String?
                 public let type: String?
                 public let function: Function
