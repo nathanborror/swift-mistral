@@ -120,7 +120,7 @@ public struct ChatRequest: Codable, Sendable {
         case none, auto, any, required, tool(Tool)
 
         public struct Tool: Codable, Sendable {
-            public var type: String
+            public var type: String = "function"
             public var function: Function
 
             public struct Function: Codable, Sendable {
@@ -131,8 +131,7 @@ public struct ChatRequest: Codable, Sendable {
                 }
             }
 
-            public init(type: String, function: Function) {
-                self.type = type
+            public init(function: Function) {
                 self.function = function
             }
         }
