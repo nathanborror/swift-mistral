@@ -9,7 +9,7 @@ public struct ModelsResponse: Codable, Sendable {
         public let object: String?
         public let created: Date?
         public let owned_by: String?
-        public let capabilities: [Capabilities]?
+        public let capabilities: Capabilities?
         public let name: String?
         public let description: String?
         public let max_context_length: Int?

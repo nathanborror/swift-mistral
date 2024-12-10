@@ -81,6 +81,13 @@ public struct ChatRequest: Codable, Sendable {
             self.prefix = prefix
             self.role = role
         }
+
+        public init(text: String? = nil, tool_calls: [ToolCall]? = nil, prefix: Bool? = nil, role: Role? = nil) {
+            self.content = [.init(type: .text, text: text)]
+            self.tool_calls = tool_calls
+            self.prefix = prefix
+            self.role = role
+        }
     }
 
     public struct ResponseFormat: Codable, Sendable {
