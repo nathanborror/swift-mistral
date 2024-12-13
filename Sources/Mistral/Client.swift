@@ -40,13 +40,17 @@ public final class Client {
         case get = "GET"
     }
 
-    private struct ErrorResponse: Decodable {
+    struct ErrorResponse: Decodable {
         let detail: Detail
 
-        struct Detail: Codable, Sendable {
+        struct Detail: Swift.Error, CustomStringConvertible, Decodable {
             let loc: [String]
             let msg: String
             let type: String
+
+            public var description: String {
+                "(\(type)) — \(msg)"
+            }
         }
     }
 }
