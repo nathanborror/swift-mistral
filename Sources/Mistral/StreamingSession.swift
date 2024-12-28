@@ -63,8 +63,10 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
                 let object = try decoder.decode(ResultType.self, from: jsonData)
                 onReceiveContent?(self, object)
             } catch {
-                if index == (jsonObjects.count - 1) {
-                    streamingBuffer = "data: \(jsonContent)"
+                if let decoded = try? decoder.decode(Client.ErrorResponse.self, from: jsonData) {
+                    onProcessingError?(self, decoded.detail)
+                } else if index == jsonObjects.count - 1 {
+                    streamingBuffer = "data: \(jsonContent)" // Chunk ends in a partial JSON
                 } else {
                     onProcessingError?(self, error)
                 }
