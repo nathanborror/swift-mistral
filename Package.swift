@@ -16,9 +16,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", branch: "main"),
+        .package(url: "https://github.com/nathanborror/swift-json-schema", branch: "main"),
     ],
     targets: [
-        .target(name: "Mistral"),
+        .target(name: "Mistral", dependencies: [
+            .product(name: "JSONSchema", package: "swift-json-schema"),
+        ]),
         .executableTarget(name: "MistralCmd", dependencies: [
             "Mistral",
             .product(name: "ArgumentParser", package: "swift-argument-parser"),

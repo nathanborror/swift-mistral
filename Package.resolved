@@ -8,6 +8,15 @@
         "branch" : "main",
         "revision" : "41d58ffe702cfe7b00b2c4c6a6611d9d25a0adc1"
       }
+    },
+    {
+      "identity" : "swift-json-schema",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nathanborror/swift-json-schema",
+      "state" : {
+        "branch" : "main",
+        "revision" : "fef7d9735ca3cade125735454f399da6b594880d"
+      }
     }
   ],
   "version" : 2
