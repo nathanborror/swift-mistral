@@ -1,5 +1,5 @@
 import Foundation
-import JSONSchema
+import JSON
 
 public struct ChatRequest: Codable, Sendable {
     public var model: String

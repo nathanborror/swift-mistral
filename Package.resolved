@@ -10,12 +10,12 @@
       }
     },
     {
-      "identity" : "swift-json-schema",
+      "identity" : "swift-json",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nathanborror/swift-json-schema",
+      "location" : "https://github.com/nathanborror/swift-json",
       "state" : {
         "branch" : "main",
-        "revision" : "fef7d9735ca3cade125735454f399da6b594880d"
+        "revision" : "50e18f57a3e52bc2e4db280dbde8e8cc6793e94a"
       }
     }
   ],
