@@ -1,7 +1,6 @@
 import Foundation
 import ArgumentParser
 import Mistral
-import SharedKit
 
 @main
 struct Command: AsyncParsableCommand {

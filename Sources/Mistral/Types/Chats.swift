@@ -1,5 +1,4 @@
 import Foundation
-import SharedKit
 
 public struct ChatRequest: Codable, Sendable {
     public var model: String
