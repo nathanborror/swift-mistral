@@ -3,16 +3,16 @@ import ArgumentParser
 import Mistral
 
 @main
-struct Command: AsyncParsableCommand {
+struct CLI: AsyncParsableCommand {
 
     static var configuration = CommandConfiguration(
+        commandName: "mistral",
         abstract: "A utility for interacting with the Mistral API.",
         version: "0.0.1",
         subcommands: [
             ModelList.self,
             ChatCompletion.self,
-        ],
-        defaultSubcommand: ModelList.self
+        ]
     )
 }
 
@@ -21,16 +21,7 @@ struct GlobalOptions: ParsableCommand {
     var key: String
 
     @Option(name: .shortAndLong, help: "Model to use.")
-    var model = "mistral-large-latest"
-
-    @Option(name: .shortAndLong, help: "System prompt.")
-    var systemPrompt: String?
-
-    var system: String?
-
-    mutating func validate() throws {
-        system = try ValueReader(input: systemPrompt)?.value()
-    }
+    var model: String?
 }
 
 struct ModelList: AsyncParsableCommand {
@@ -63,17 +54,13 @@ struct ChatCompletion: AsyncParsableCommand {
     var stream: Bool?
 
     func run() async throws {
+        guard let model = global.model else {
+            fatalError("Missing model argument")
+        }
         let client = Client(apiKey: global.key)
         var messages: [ChatRequest.Message] = []
 
-        write("\nUsing \(global.model)\n\n")
-
-        // System prompt
-        if let system = global.system {
-            let message = ChatRequest.Message(text: system, role: .system)
-            messages.append(message)
-            write("\nSystem Prompt:\n\(system)\n\n")
-        }
+        write("\nUsing \(model)\n\n")
 
         while true {
             write("> ")
@@ -91,7 +78,7 @@ struct ChatCompletion: AsyncParsableCommand {
 
             // Input request
             let req = ChatRequest(
-                model: global.model,
+                model: model,
                 stream: stream,
                 messages: messages
             )
@@ -123,31 +110,5 @@ struct ChatCompletion: AsyncParsableCommand {
 
     func newline() {
         write("\n")
-    }
-}
-
-// Helpers
-
-enum ValueReader {
-    case direct(String)
-    case file(URL)
-
-    init?(input: String?) throws {
-        guard let input else { return nil }
-        if FileManager.default.fileExists(atPath: input) {
-            let url = URL(fileURLWithPath: input)
-            self = .file(url)
-        } else {
-            self = .direct(input)
-        }
-    }
-
-    func value() throws -> String {
-        switch self {
-        case .direct(let value):
-            return value
-        case .file(let url):
-            return try String(contentsOf: url, encoding: .utf8)
-        }
     }
 }

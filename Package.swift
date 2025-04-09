@@ -22,7 +22,7 @@ let package = Package(
         .target(name: "Mistral", dependencies: [
             .product(name: "JSON", package: "swift-json"),
         ]),
-        .executableTarget(name: "MistralCmd", dependencies: [
+        .executableTarget(name: "CLI", dependencies: [
             "Mistral",
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
         ]),
